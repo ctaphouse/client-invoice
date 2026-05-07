@@ -1,0 +1,38 @@
+@import "tailwindcss";
+@source "./src/ui/**/*.tsx";
+@source "./src/ui/**/*.ts";
+@source "./src/ui/**/*.html";
+
+@theme {
+  --font-sans: "DM Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", ui-monospace, monospace;
+  --font-display: "Syne", system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  .scroll-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scroll-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+  }
+  .scroll-thin::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+  }
+
+  thead.sticky-header th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+}

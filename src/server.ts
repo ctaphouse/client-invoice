@@ -1,0 +1,51 @@
+import { Hono } from "hono";
+import { serveStatic } from "hono/bun";
+import { resolve } from "path";
+import { initDb } from "./api/db.ts";
+import { mountRoutes } from "./api/routes/index.ts";
+
+const dbPath = resolve(Bun.argv[2] ?? "data/output/clientinvoice.sqlite");
+const port   = Number(Bun.env.PORT ?? 3000);
+const isDev  = Bun.env.NODE_ENV !== "production";
+
+const distExists = await Bun.file("dist/bundle.js").exists();
+if (!distExists || isDev) {
+  console.log("Building CSS...");
+  try {
+    await Bun.$`node_modules/.bin/tailwindcss -i src/ui/styles.css -o dist/styles.css`.quiet();
+  } catch (e) {
+    console.error("CSS build failed:", e);
+    process.exit(1);
+  }
+
+  console.log("Building UI...");
+  const result = await Bun.build({
+    entrypoints: ["src/ui/main.tsx"],
+    outdir: "dist",
+    target: "browser",
+    naming: "bundle.js",
+  });
+  if (!result.success) {
+    console.error("UI build failed:", result.logs);
+    process.exit(1);
+  }
+  await Bun.write("dist/index.html", await Bun.file("src/ui/index.html").text());
+}
+
+initDb(dbPath);
+console.log(`Database: ${dbPath}`);
+
+const app = new Hono();
+
+mountRoutes(app);
+
+app.use("/*", serveStatic({ root: "./dist" }));
+
+app.get("*", async (c) => {
+  const html = await Bun.file("dist/index.html").text();
+  return c.html(html);
+});
+
+console.log(`Client Invoice UI → http://localhost:${port}`);
+
+export default { port, fetch: app.fetch };
